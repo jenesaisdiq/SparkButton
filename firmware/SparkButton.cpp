@@ -1,4 +1,4 @@
-#include "button.h"
+#include "SparkButton.h"
 #include "math.h"
 
 //----------------- Button ----------------//
