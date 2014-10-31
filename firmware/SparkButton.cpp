@@ -36,9 +36,16 @@ void Button::ledOn(uint8_t i, uint8_t r, uint8_t g, uint8_t b){
     ring.show();
 }
 
-void Button::ledsOff(){
+void Button::allLedsOff(){
     for(int i = 0; i<PIXEL_COUNT; i++){
             ring.setPixelColor(i, ring.Color(0, 0, 0));
+    }
+    ring.show();
+}
+
+void Button::allLedsOn(uint8_t r, uint8_t g, uint8_t b){
+    for(int i = 0; i<PIXEL_COUNT; i++){
+            ring.setPixelColor(i, ring.Color(r, g, b));
     }
     ring.show();
 }
@@ -51,16 +58,18 @@ uint8_t Button::allButtonsOn(){
     if(!digitalRead(D1) && !digitalRead(D2) && !digitalRead(D3) && !digitalRead(D4)) {
         return 1;
     }
-    else
+    else {
         return 0;
+    }
 }
 
 uint8_t Button::allButtonsOff(){
     if(digitalRead(D1) && digitalRead(D2) && digitalRead(D3) && digitalRead(D4)) {
         return 1;
     }
-    else
+    else {
         return 0;
+    }
 }
 
 void Button::rainbow(uint8_t wait) {
@@ -96,6 +105,26 @@ int Button::readZ(){
     return accelerometer.readZ();
 }
 
+int Button::readX16(){
+    return accelerometer.readX16();
+}
+
+int Button::readY16(){
+    return accelerometer.readY16();
+}
+
+int Button::readZ16(){
+    return accelerometer.readZ16();
+}
+
+//float Button::lowDirection(){
+//  float rads = atan2(this.readY16(),this.readX16());
+//  float ledPos = abs(rads/(M_PI/12)) + 1;
+//  if(ledPos == 0 || ledPos > 12){
+//    ledPos = 12;
+//  }
+//  return ledPos;
+//}
 
 
 /*
@@ -166,18 +195,7 @@ void ADXL362::beginMeasure() {
 #endif
 }
 
-//
-//  readXData(), readYData(), readZData(), readTemp()
-//  Read X, Y, Z, and Temp registers
-//
-int ADXL362::readXData(){
-  int XDATA = SPIreadTwoRegisters(XL362_XDATA_L);
-#ifdef ADXL362_DEBUG
-  Serial.print(  "XDATA = "); 
-  Serial.println(XDATA);
-#endif
-  return XDATA;
-}
+
 
 //reading off the 8-bit register as documented in the ADXL362 spec
 //IMPORTANT to make it a signed 8-bit int so that the data is interpreted correctly
@@ -208,6 +226,37 @@ int ADXL362::readZ(){
   return (int)ZDATA;
 }
 
+//
+//  readXData(), readYData(), readZData(), readTemp()
+//  Read X, Y, Z, and Temp registers
+//
+int ADXL362::readX16(){
+  uint16_t XDATA = SPIreadTwoRegisters(XL362_XDATA_L);
+#ifdef ADXL362_DEBUG
+  Serial.print(  "XDATA = "); 
+  Serial.println(XDATA);
+#endif
+  return XDATA;
+}
+
+int ADXL362::readY16(){
+  uint16_t YDATA = SPIreadTwoRegisters(XL362_YDATA_L);
+#ifdef ADXL362_DEBUG
+  Serial.print(  "\tYDATA = "); 
+  Serial.println(YDATA);
+#endif
+  return YDATA;
+}
+
+int ADXL362::readZ16(){
+  uint16_t ZDATA = SPIreadTwoRegisters(XL362_ZDATA_L);
+#ifdef ADXL362_DEBUG
+  Serial.print(  "\tZDATA = "); 
+  Serial.println(ZDATA);
+#endif
+  return ZDATA;
+}
+
 //Temperature only has a 16-bit version, so read two 8-bit regs
 //worth knowing that this is an INTERNAL temperature measurement, so doesn't reflect the environment accurately
 int16_t ADXL362::readTemp(){
@@ -217,24 +266,6 @@ int16_t ADXL362::readTemp(){
 //  Serial.println(TEMP);
 //#endif
   return TEMP;
-}
-
-int ADXL362::readYData(){
-  int YDATA = SPIreadTwoRegisters(XL362_YDATA_L);
-#ifdef ADXL362_DEBUG
-  Serial.print(  "\tYDATA = "); 
-  Serial.println(YDATA);
-#endif
-  return YDATA;
-}
-
-int ADXL362::readZData(){
-  int ZDATA = SPIreadTwoRegisters(XL362_ZDATA_L);
-#ifdef ADXL362_DEBUG
-  Serial.print(  "\tZDATA = "); 
-  Serial.println(ZDATA);
-#endif
-  return ZDATA;
 }
 
 void ADXL362::readXYZTData(short &XData, short &YData, short &ZData, float &Temperature){
@@ -612,7 +643,7 @@ void Adafruit_NeoPixel::show(void) {
   // subsequent round of data until the latch time has elapsed.  This
   // allows the mainline code to start generating the next frame of data
   // rather than stalling for the latch.
-  if(type == WS2812B || type == WS2811) { // same as WS2812, 800 KHz bitstream, 50us reset pulse
+  if(type == WS2812B) { // same as WS2812, 800 KHz bitstream, 50us reset pulse
     while((micros() - endTime) < 50L);
   }
   else { // assume it's TM1803, 800 KHz bitstream, 24us reset pulse
@@ -693,182 +724,7 @@ void Adafruit_NeoPixel::show(void) {
       } while ( ++j < 24 ); // ... pixel done
     } // end while(i) ... no more pixels
   }
-  else if(type == WS2811) { // WS2811, 400 KHz bitstream
-    while(i) { // While bytes left... (3 bytes = 1 pixel)
-      mask = 0x800000; // reset the mask
-      i = i-3;      // decrement bytes remaining
-      g = *ptr++;   // Next green byte value
-      r = *ptr++;   // Next red byte value
-      b = *ptr++;   // Next blue byte value
-      c = ((uint32_t)g << 16) | ((uint32_t)r <<  8) | b; // Pack the next 3 bytes to keep timing tight
-      j = 0;        // reset the 24-bit counter
-      do {
-        PIN_MAP[pin].gpio_peripheral->BSRR = PIN_MAP[pin].gpio_pin; // HIGH
-        if (c & mask) { // if masked bit is high
-          // WS2811 spec             1.20us HIGH
-          // Adafruit on Arduino    (meas. 1.25us)
-          // This lib on Spark Core (meas. 1.248us)
-          asm volatile(
-            "mov r0, r0" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t"
-            ::: "r0", "cc", "memory");
-          // WS2811 spec             1.30us LOW
-          // Adafruit on Arduino    (meas. 1.25us)
-          // This lib on Spark Core (meas. 1.252us)
-          PIN_MAP[pin].gpio_peripheral->BRR = PIN_MAP[pin].gpio_pin; // LOW
-          asm volatile(
-            "mov r0, r0" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            ::: "r0", "cc", "memory");
-        }
-        else { // else masked bit is low
-          // WS2811 spec             500ns HIGH
-          // Adafruit on Arduino    (meas. 500ns)
-          // This lib on Spark Core (meas. 500ns)
-          asm volatile(
-            "mov r0, r0" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t"
-            ::: "r0", "cc", "memory");
-          // WS2811 spec             2.000us LOW
-          // Adafruit on Arduino    (meas. 2.000us)
-          // This lib on Spark Core (meas. 1.988us)
-          PIN_MAP[pin].gpio_peripheral->BRR = PIN_MAP[pin].gpio_pin; // LOW
-          asm volatile(
-            "mov r0, r0" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            ::: "r0", "cc", "memory");
-        }
-        mask >>= 1;
-      } while ( ++j < 24 ); // ... pixel done
-    } // end while(i) ... no more pixels
-  }
-  else { // must be only other option TM1803 (Radio Shack Tri-Color Strip), 400 KHz bitstream
-    while(i) { // While bytes left... (3 bytes = 1 pixel)
-      mask = 0x800000; // reset the mask
-      i = i-3;      // decrement bytes remaining
-      g = *ptr++;   // Next green byte value
-      r = *ptr++;   // Next red byte value
-      b = *ptr++;   // Next blue byte value
-      c = ((uint32_t)g << 16) | ((uint32_t)r <<  8) | b; // Pack the next 3 bytes to keep timing tight
-      j = 0;        // reset the 24-bit counter
-      do {
-        PIN_MAP[pin].gpio_peripheral->BSRR = PIN_MAP[pin].gpio_pin; // HIGH
-        if (c & mask) { // if masked bit is high
-          // TM1803 spec             1.36us HIGH
-          // Pololu on Arduino      (meas. 1.31us)
-          // This lib on Spark Core (meas. 1.36us)
-          asm volatile(
-            "mov r0, r0" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t"
-            ::: "r0", "cc", "memory");
-          // TM1803 spec             680ns LOW
-          // Pololu on Arduino      (meas. 1.024us)
-          // This lib on Spark Core (meas. 668ns)
-          PIN_MAP[pin].gpio_peripheral->BRR = PIN_MAP[pin].gpio_pin; // LOW
-          asm volatile(  
-            "mov r0, r0" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            ::: "r0", "cc", "memory");
-        }
-        else { // else masked bit is low
-          // TM1803 spec             680ns HIGH
-          // Pololu on Arduino      (meas. 374ns)
-          // This lib on Spark Core (meas. 680ns)
-          asm volatile(
-            "mov r0, r0" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            ::: "r0", "cc", "memory");
-          // TM1803 spec             1.36us LOW
-          // Pololu on Arduino      (meas. 2.00us)
-          // This lib on Spark Core (meas. 1.36us)
-          PIN_MAP[pin].gpio_peripheral->BRR = PIN_MAP[pin].gpio_pin; // LOW
-          asm volatile(
-            "mov r0, r0" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t" "nop" "\n\t"
-            "nop" "\n\t" "nop" "\n\t"
-            ::: "r0", "cc", "memory");
-        }
-        mask >>= 1;
-      } while ( ++j < 24 ); // ... pixel done
-    } // end while(i) ... no more pixels
-  }
+  
   __enable_irq();
   endTime = micros(); // Save EOD time for latch on next call
 }
@@ -891,13 +747,10 @@ void Adafruit_NeoPixel::setPixelColor(
       b = (b * brightness) >> 8;
     }
     uint8_t *p = &pixels[n * 3];
-    if(type == WS2812B) { // WS2812/WS2812B is GRB order.
+    //if(type == WS2812B) { // WS2812/WS2812B is GRB order.
       *p++ = g;
       *p++ = r;
-    } else { // WS2811/TM1803 is RGB order
-      *p++ = r;
-      *p++ = g;
-    }
+    //} 
     *p = b;
   }
 }
@@ -915,13 +768,10 @@ void Adafruit_NeoPixel::setPixelColor(uint16_t n, uint32_t c) {
       b = (b * brightness) >> 8;
     }
     uint8_t *p = &pixels[n * 3];
-    if(type == WS2812B) { // WS2812/WS2812B is GRB order.
+    //if(type == WS2812B) { // WS2812/WS2812B is GRB order.
       *p++ = g;
       *p++ = r;
-    } else { // WS2811/TM1803 is RGB order
-      *p++ = r;
-      *p++ = g;
-    }
+    //} 
     *p = b;
   }
 }

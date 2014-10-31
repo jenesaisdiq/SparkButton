@@ -18,8 +18,8 @@
 
 #include "application.h"
 
-#ifndef button_h
-#define button_h
+#ifndef SparkButton_h
+#define SparkButton_h
 
 class Button {
 
@@ -29,7 +29,8 @@ class Button {
   
   void
     begin(void),
-    ledsOff(void),
+    allLedsOff(void),
+    allLedsOn(uint8_t r, uint8_t g, uint8_t b),
     ledOn(uint8_t i, uint8_t r, uint8_t g, uint8_t b),
     rainbow(uint8_t wait);
   uint8_t
@@ -39,7 +40,12 @@ class Button {
   int
     readX(void),
     readY(void),
-    readZ(void);
+    readZ(void),
+    readX16(void),
+    readY16(void),
+    readZ16(void);
+  //float
+    //lowDirection(void);
     
  private:
 
@@ -54,40 +60,40 @@ class Button {
 
 /* ADXL Registers */
 
-#define XL362_DEVID_AD			0x00
-#define XL362_DEVID_MST			0x01
-#define XL362_PARTID			0x02
-#define XL362_REVID			0x03
-#define XL362_XDATA			0x08
-#define XL362_YDATA			0x09
-#define XL362_ZDATA			0x0A
-#define XL362_STATUS			0x0B
-#define XL362_FIFO_ENTRIES_L		0x0C
-#define XL362_FIFO_ENTRIES_H		0x0D
-#define XL362_XDATA_L			0x0E
-#define XL362_XDATA_H			0x0F
-#define XL362_YDATA_L			0x10
-#define XL362_YDATA_H			0x11
-#define XL362_ZDATA_L			0x12
-#define XL362_ZDATA_H			0x13
-#define XL362_TEMP_L			0x14
-#define XL362_TEMP_H			0x15
-#define XL362_SOFT_RESET		0x1F
-#define XL362_THRESH_ACT_L		0x20
-#define XL362_THRESH_ACT_H		0x21
-#define XL362_TIME_ACT				0x22
-#define XL362_THRESH_INACT_L	0x23
-#define XL362_THRESH_INACT_H	0x24
-#define XL362_TIME_INACT_L		0x25
-#define XL362_TIME_INACT_H		0x26
-#define XL362_ACT_INACT_CTL		0x27
-#define XL362_FIFO_CONTROL		0x28
-#define XL362_FIFO_SAMPLES		0x29
-#define XL362_INTMAP1			0x2A
-#define XL362_INTMAP2			0x2B
-#define XL362_FILTER_CTL		0x2C
-#define XL362_POWER_CTL			0x2D
-#define XL362_SELF_TEST			0x2E
+#define XL362_DEVID_AD      0x00
+#define XL362_DEVID_MST     0x01
+#define XL362_PARTID      0x02
+#define XL362_REVID     0x03
+#define XL362_XDATA     0x08
+#define XL362_YDATA     0x09
+#define XL362_ZDATA     0x0A
+#define XL362_STATUS      0x0B
+#define XL362_FIFO_ENTRIES_L    0x0C
+#define XL362_FIFO_ENTRIES_H    0x0D
+#define XL362_XDATA_L     0x0E
+#define XL362_XDATA_H     0x0F
+#define XL362_YDATA_L     0x10
+#define XL362_YDATA_H     0x11
+#define XL362_ZDATA_L     0x12
+#define XL362_ZDATA_H     0x13
+#define XL362_TEMP_L      0x14
+#define XL362_TEMP_H      0x15
+#define XL362_SOFT_RESET    0x1F
+#define XL362_THRESH_ACT_L    0x20
+#define XL362_THRESH_ACT_H    0x21
+#define XL362_TIME_ACT        0x22
+#define XL362_THRESH_INACT_L  0x23
+#define XL362_THRESH_INACT_H  0x24
+#define XL362_TIME_INACT_L    0x25
+#define XL362_TIME_INACT_H    0x26
+#define XL362_ACT_INACT_CTL   0x27
+#define XL362_FIFO_CONTROL    0x28
+#define XL362_FIFO_SAMPLES    0x29
+#define XL362_INTMAP1     0x2A
+#define XL362_INTMAP2     0x2B
+#define XL362_FILTER_CTL    0x2C
+#define XL362_POWER_CTL     0x2D
+#define XL362_SELF_TEST     0x2E
 
 /* Configuration values */
 
@@ -116,57 +122,57 @@ class ADXL362
 {
 public:
 
-	ADXL362();
-	
-	//
-	// Basic Device control and readback functions
-	//
-	void begin(); 		
-	void beginMeasure(); 
-	int readXData();
-	int readYData();
-	int readZData();
-	int readX();
-	int readY();
-	int readZ();
-	void readXYZTData(short &XData, short &YData, short &ZData, float &Temperature);
-	void readXYZmg(int &X, int &Y, int &Z);
-	void XYZmgtoRPT(int X, int Y, int Z, float &Rho, float &Phi, float &Theta);
-	int16_t readTemp();
-	
-	//
-	// Activity/Inactivity interrupt functions
-	//
-	void setupDCActivityInterrupt(int threshold, uint8_t time);	
-	void setupDCInactivityInterrupt(int threshold, uint8_t time);
-	void setupACActivityInterrupt(int threshold, uint8_t time);
-	void setupACInactivityInterrupt(int threshold, uint8_t time);
-	
-	// need to add the following functions
-	// void mapINT1(
-	// void mapINT2
-	// void autoSleep
-	// void activityInterruptControl
-	//		-Activity, Inactivity, Both
-	//		- Referenced, Absolute
-	//		- Free Fall, Linked Mode, Loop Mode
-	
-	
-	void checkAllControlRegs();
-	
-	void setRange(uint8_t Range);
-	void setBandwidth(uint8_t BandWidth);
-	void setOutputDatarate(uint8_t ODR);
-	void setNoiseLevel(uint8_t NoiseLevel);
-	
-	//  Low-level SPI control, to simplify overall coding
-	uint8_t SPIreadOneRegister(uint8_t regAddress);
-	void SPIwriteOneRegister(uint8_t regAddress, uint8_t regValue);
-	int  SPIreadTwoRegisters(uint8_t regAddress);
-	void SPIwriteTwoRegisters(uint8_t regAddress, int twoRegValue);
-	
+  ADXL362();
+  
+  //
+  // Basic Device control and readback functions
+  //
+  void begin();     
+  void beginMeasure(); 
+  int readX16();
+  int readY16();
+  int readZ16();
+  int readX();
+  int readY();
+  int readZ();
+  void readXYZTData(short &XData, short &YData, short &ZData, float &Temperature);
+  void readXYZmg(int &X, int &Y, int &Z);
+  void XYZmgtoRPT(int X, int Y, int Z, float &Rho, float &Phi, float &Theta);
+  int16_t readTemp();
+  
+  //
+  // Activity/Inactivity interrupt functions
+  //
+  void setupDCActivityInterrupt(int threshold, uint8_t time); 
+  void setupDCInactivityInterrupt(int threshold, uint8_t time);
+  void setupACActivityInterrupt(int threshold, uint8_t time);
+  void setupACInactivityInterrupt(int threshold, uint8_t time);
+  
+  // need to add the following functions
+  // void mapINT1(
+  // void mapINT2
+  // void autoSleep
+  // void activityInterruptControl
+  //    -Activity, Inactivity, Both
+  //    - Referenced, Absolute
+  //    - Free Fall, Linked Mode, Loop Mode
+  
+  
+  void checkAllControlRegs();
+  
+  void setRange(uint8_t Range);
+  void setBandwidth(uint8_t BandWidth);
+  void setOutputDatarate(uint8_t ODR);
+  void setNoiseLevel(uint8_t NoiseLevel);
+  
+  //  Low-level SPI control, to simplify overall coding
+  uint8_t SPIreadOneRegister(uint8_t regAddress);
+  void SPIwriteOneRegister(uint8_t regAddress, uint8_t regValue);
+  int  SPIreadTwoRegisters(uint8_t regAddress);
+  void SPIwriteTwoRegisters(uint8_t regAddress, int twoRegValue);
+  
 private:
-	uint8_t mgperLSB; // default +-2g XL362_FILTER_FLAG_2G -> 1mg/LSB (ADXL362 Datasheet page 4)
+  uint8_t mgperLSB; // default +-2g XL362_FILTER_FLAG_2G -> 1mg/LSB (ADXL362 Datasheet page 4)
 
 };
 
@@ -217,10 +223,7 @@ private:
   --------------------------------------------------------------------*/
   
 // 'type' flags for LED pixels (third parameter to constructor):
-#define WS2812   0x02 // 800 KHz datastream (NeoPixel)
 #define WS2812B  0x02 // 800 KHz datastream (NeoPixel)
-#define WS2811   0x00 // 400 KHz datastream (NeoPixel)
-#define TM1803   0x03 // 400 KHz datastream (Radio Shack Tri-Color Strip)
   
 class Adafruit_NeoPixel {
 
