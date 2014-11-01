@@ -1,35 +1,31 @@
 #include "SparkButton/SparkButton.h"
 #include "math.h"
 
-/*Here's a nice combination of features that I like to use.
-Note the use of the allButtons functions.*/ 
+/*Let me show you how easy it is to put the Button on the internet.
+Useful info, like how to access the data from your browser, can be
+found here: http://docs.spark.io/firmware/#spark-variable
+*/ 
 
 Button b = Button();
+int xValue = 0;
 
 void setup() {
     //Tell b to get everything ready to go
     b.begin();
+
+    //This makes any integer stored in xValue available online! Done!
+    Spark.variable("xValue", &xValue, INT);
 }
 
 void loop(){
-    /*Did you know that the SparkButton can detect if it's moving? It's true! Specifically it can read when it's being accelerated. Recall that gravity is a constant acceleration and this becomes very useful- you know the orientation!*/ 
+    //How much are you moving in the x direction?
+    xValue = b.readX();
     
-    //How much are you moving in the x direction? (look at the white text on the board)
-    int xValue = b.readX();
-    
-    //How about in the y direction?
-    int yValue = b.readY();
-    
-    //Now we'll do some trig to figure out which LED that direction maps to
-    float rads = atan2(yValue,xValue);
-    int ledPos = abs(rads/(M_PI/12)) + 1;
-    
-    //Now turn that LED on
-    b.ledOn(ledPos, 0, 30, 30);
-    
+    //You could also push those values out exactly when you want using Publish
+    //Watch out, though- no more than one publish per second or you'll be rate limited!
+    //http://docs.spark.io/firmware/#spark-publish
+    //Spark.publish("xValue", String(xValue));
+
     //Wait a mo'
     delay(100);
-    
-    //Turn the LEDs off so they don't all end up on
-    b.allLedsOff();
 }

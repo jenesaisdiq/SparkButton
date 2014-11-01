@@ -13,14 +13,14 @@ void setup() {
 
 void loop(){
     
+    b.allLedsOff();
     
-    b.ledsOff();
     if(b.allButtonsOn()) {
         b.rainbow(20);
-        b.ledsOff();
+        b.allLedsOff();
     }
     else if(b.allButtonsOff()) {
-            
+        //anything you want to happen when they're all off        
     }
     else{
         if(b.buttonOn(1)){

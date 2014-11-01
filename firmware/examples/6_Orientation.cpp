@@ -22,8 +22,9 @@ void loop(){
     int yValue = b.readY();
     
     //Now we'll do some trig to figure out which LED that direction maps to
+    //... ok, it doesn't work well yet. Need to go back to the napkin.
     float rads = atan2(yValue,xValue);
-    int ledPos = abs(rads/(M_PI/12)) + 1;
+    int ledPos = 12 - abs(rads/(M_PI/6) + 6);
     
     //Now turn that LED on
     b.ledOn(ledPos, 0, 30, 30);

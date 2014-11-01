@@ -25,11 +25,9 @@ void loop(){
     int zValue = b.readZ();
 
     //This will make the color of the Button change with what direction you shake it
-    allLedsOn(xValue, yValue, zValue);
+    //The abs() part takes the absolute value, because negatives don't work well
+    b.allLedsOn(abs(xValue), abs(yValue), abs(zValue));
     
     //Wait a mo'
-    delay(100);
-    
-    //Turn the LEDs off so they don't all end up on
-    b.allLedsOff();
+    delay(50);
 }

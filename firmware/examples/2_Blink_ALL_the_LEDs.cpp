@@ -12,7 +12,7 @@ void setup() {
 }
 
 void loop(){
-    b.allLedsOn(0,50,50);
+    b.allLedsOn(0,20,20);
     delay(1000);
     b.allLedsOff();
     delay(1000);
