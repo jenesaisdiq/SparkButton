@@ -21,17 +21,18 @@
 #ifndef SparkButton_h
 #define SparkButton_h
 
-class Button {
+class SparkButton {
 
  public:
 
-  Button();
+  SparkButton();
   
   void
     begin(void),
     allLedsOff(void),
     allLedsOn(uint8_t r, uint8_t g, uint8_t b),
     ledOn(uint8_t i, uint8_t r, uint8_t g, uint8_t b),
+    ledOff(uint8_t i),
     rainbow(uint8_t wait);
   uint8_t
     buttonOn(uint8_t i),

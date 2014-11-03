@@ -6,7 +6,7 @@ Specifically it can read when it's being accelerated. Recall that gravity
 is a constant acceleration and this becomes very useful- you know the orientation!*/ 
     
 
-Button b = Button();
+SparkButton b = SparkButton();
 
 void setup() {
     //Tell b to get everything ready to go

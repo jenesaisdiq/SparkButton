@@ -6,11 +6,11 @@
 Adafruit_NeoPixel ring = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
 ADXL362 accelerometer;
 
-Button::Button(){
+SparkButton::SparkButton(){
     
 }
 
-void Button::begin(){
+void SparkButton::begin(){
     ring.begin();
     ring.show();
     
@@ -24,7 +24,7 @@ void Button::begin(){
     pinMode(D4, INPUT_PULLUP);
 }
 
-void Button::ledOn(uint8_t i, uint8_t r, uint8_t g, uint8_t b){
+void SparkButton::ledOn(uint8_t i, uint8_t r, uint8_t g, uint8_t b){
     //i-1 shifts the location from human readable to the right index for the LEDs
     if(i == 12){
         ring.setPixelColor(0, ring.Color(r,g,b));
@@ -36,25 +36,37 @@ void Button::ledOn(uint8_t i, uint8_t r, uint8_t g, uint8_t b){
     ring.show();
 }
 
-void Button::allLedsOff(){
+void SparkButton::ledOff(uint8_t i){
+    //i-1 shifts the location from human readable to the right index for the LEDs
+    if(i == 12){
+        ring.setPixelColor(0, ring.Color(0,0,0));
+        ring.setPixelColor(10, ring.Color(0,0,0));
+    }
+    else{
+        ring.setPixelColor(i-1, ring.Color(0,0,0));
+    }
+    ring.show();
+}
+
+void SparkButton::allLedsOff(){
     for(int i = 0; i<PIXEL_COUNT; i++){
             ring.setPixelColor(i, ring.Color(0, 0, 0));
     }
     ring.show();
 }
 
-void Button::allLedsOn(uint8_t r, uint8_t g, uint8_t b){
+void SparkButton::allLedsOn(uint8_t r, uint8_t g, uint8_t b){
     for(int i = 0; i<PIXEL_COUNT; i++){
             ring.setPixelColor(i, ring.Color(r, g, b));
     }
     ring.show();
 }
 
-uint8_t Button::buttonOn(uint8_t i){
+uint8_t SparkButton::buttonOn(uint8_t i){
     return !digitalRead(i);
 }
 
-uint8_t Button::allButtonsOn(){
+uint8_t SparkButton::allButtonsOn(){
     if(!digitalRead(D1) && !digitalRead(D2) && !digitalRead(D3) && !digitalRead(D4)) {
         return 1;
     }
@@ -63,7 +75,7 @@ uint8_t Button::allButtonsOn(){
     }
 }
 
-uint8_t Button::allButtonsOff(){
+uint8_t SparkButton::allButtonsOff(){
     if(digitalRead(D1) && digitalRead(D2) && digitalRead(D3) && digitalRead(D4)) {
         return 1;
     }
@@ -72,7 +84,7 @@ uint8_t Button::allButtonsOff(){
     }
 }
 
-void Button::rainbow(uint8_t wait) {
+void SparkButton::rainbow(uint8_t wait) {
   uint16_t i, j;
 
   for(j=0; j<256; j++) { // 1 cycle of all colors on wheel
@@ -80,44 +92,44 @@ void Button::rainbow(uint8_t wait) {
       uint8_t WheelPos = ((i * 256 / ring.numPixels()) + j) & 255;
       if(WheelPos < 85) {
          ring.setPixelColor(i,ring.Color(WheelPos * 3, 255 - WheelPos * 3, 0));
-        } else if(WheelPos < 170) {
+      } else if(WheelPos < 170) {
          WheelPos -= 85;
          ring.setPixelColor(i,ring.Color(255 - WheelPos * 3, 0, WheelPos * 3));
-        } else {
+      } else {
          WheelPos -= 170;
          ring.setPixelColor(i,ring.Color(0, WheelPos * 3, 255 - WheelPos * 3));
-        }
+      }
     }
     ring.show();
     delay(wait);
   }
 }
 
-int Button::readX(){
+int SparkButton::readX(){
     return accelerometer.readX();
 }
 
-int Button::readY(){
+int SparkButton::readY(){
     return accelerometer.readY();
 }
 
-int Button::readZ(){
+int SparkButton::readZ(){
     return accelerometer.readZ();
 }
 
-int Button::readX16(){
+int SparkButton::readX16(){
     return accelerometer.readX16();
 }
 
-int Button::readY16(){
+int SparkButton::readY16(){
     return accelerometer.readY16();
 }
 
-int Button::readZ16(){
+int SparkButton::readZ16(){
     return accelerometer.readZ16();
 }
 
-//float Button::lowDirection(){
+//float SparkButton::lowDirection(){
 //  float rads = atan2(this.readY16(),this.readX16());
 //  float ledPos = abs(rads/(M_PI/12)) + 1;
 //  if(ledPos == 0 || ledPos > 12){
@@ -147,10 +159,7 @@ int Button::readZ16(){
 
 const int slaveSelectPin = A2;
 
-ADXL362::ADXL362() {
-
-}
-
+ADXL362::ADXL362() {}
 
 //
 //  begin()
@@ -632,6 +641,7 @@ Adafruit_NeoPixel::~Adafruit_NeoPixel() {
 void Adafruit_NeoPixel::begin(void) {
   pinMode(pin, OUTPUT);
   digitalWrite(pin, LOW);
+  endTime = micros();
 }
 
 void Adafruit_NeoPixel::show(void) {
