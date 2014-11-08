@@ -20,13 +20,6 @@ void loop(){
     
     // How about in the y direction?
     int yValue = b.readY();
-
-    // If we're close to level, light all LEDs green
-    if(abs(xValue)<2 and abs(yValue)<2) {
-        b.allLedsOn(0,255,0);
-        delay(100);
-        return;
-    }
     
     // Now we'll do some trig to figure out which LED that direction maps to
     float rads = atan2(yValue,xValue);
