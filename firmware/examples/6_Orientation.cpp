@@ -20,18 +20,23 @@ void loop(){
     
     // How about in the y direction?
     int yValue = b.readY();
+
+    // If we're close to level, light all LEDs green
+    if(abs(xValue)<2 and abs(yValue)<2) {
+        b.allLedsOn(0,255,0);
+        delay(100);
+        return;
+    }
     
     // Now we'll do some trig to figure out which LED that direction maps to
-    // ... ok, it doesn't work well yet. Need to go back to the napkin.
     float rads = atan2(yValue,xValue);
-    int ledPos = 12 - abs(rads/(M_PI/6) + 6);
+    int ledPos = (int)(12 - (rads/(M_PI/6) - 3)) % 12;
     
+    // Turn all LEDs off before turning one on
+    b.allLedsOff();
     // Now turn that LED on
     b.ledOn(ledPos, 0, 30, 30);
     
     // Wait a mo'
     delay(100);
-    
-    // Turn the LEDs off so they don't all end up on
-    b.ledOff(ledPos);
 }
