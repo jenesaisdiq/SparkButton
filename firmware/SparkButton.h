@@ -33,11 +33,13 @@ class SparkButton {
     allLedsOn(uint8_t r, uint8_t g, uint8_t b),
     ledOn(uint8_t i, uint8_t r, uint8_t g, uint8_t b),
     ledOff(uint8_t i),
-    rainbow(uint8_t wait);
+    rainbow(uint8_t wait),
+    smoothLedOn(float i, uint8_t r, uint8_t g, uint8_t b);
   uint8_t
     buttonOn(uint8_t i),
     allButtonsOn(void),
-    allButtonsOff(void);
+    allButtonsOff(void),
+    lowestLed(void);
   int
     readX(void),
     readY(void),
@@ -140,14 +142,6 @@ public:
   void readXYZmg(int &X, int &Y, int &Z);
   void XYZmgtoRPT(int X, int Y, int Z, float &Rho, float &Phi, float &Theta);
   int16_t readTemp();
-  
-  //
-  // Activity/Inactivity interrupt functions
-  //
-  void setupDCActivityInterrupt(int threshold, uint8_t time); 
-  void setupDCInactivityInterrupt(int threshold, uint8_t time);
-  void setupACActivityInterrupt(int threshold, uint8_t time);
-  void setupACInactivityInterrupt(int threshold, uint8_t time);
   
   // need to add the following functions
   // void mapINT1(

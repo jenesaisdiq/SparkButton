@@ -14,19 +14,13 @@ void setup() {
 }
 
 void loop(){
+    // Want to figure out which LED is the lowest? 
+    // We've hidden the necessary trigonometry in this function.
+    int ledPos = b.lowestLed();
     
-    // How much are you moving in the x direction? (look at the white text on the board)
-    int xValue = b.readX();
-    
-    // How about in the y direction?
-    int yValue = b.readY();
-    
-    // Now we'll do some trig to figure out which LED that direction maps to
-    float rads = atan2(yValue,xValue);
-    int ledPos = (int)(12 - (rads/(M_PI/6) - 3)) % 12;
-    
-    // Turn all LEDs off before turning one on
+    // Turn the LEDs off so they don't all end up on
     b.allLedsOff();
+    
     // Now turn that LED on
     b.ledOn(ledPos, 0, 30, 30);
     

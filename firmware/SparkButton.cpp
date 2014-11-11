@@ -36,6 +36,41 @@ void SparkButton::ledOn(uint8_t i, uint8_t r, uint8_t g, uint8_t b){
     ring.show();
 }
 
+void SparkButton::smoothLedOn(float i, uint8_t r, uint8_t g, uint8_t b){
+    //uint8_t intI = lrintf(i);
+    //Serial.print("intI: ");
+    //Serial.println(intI);
+    
+    //float differ = i-(float)intI + 0.5;
+    //Serial.print("differ: ");
+    //Serial.println(differ);
+    
+    float tempI;
+    float differ = modff(i, &tempI);
+    uint8_t intI = (uint8_t)tempI;
+    
+    
+    // checks to see if it's reeeeally close to being an integer
+    //if(abs(differ) < 0.01){
+      // intI-1 shifts the location from human readable to the right index for the LEDs
+    //  ring.setPixelColor(intI-1, ring.Color(r,g,b));
+    //  Serial.println("tripped int check");
+    //}
+    //else {
+      // diff > 0 means that it's closer to the lower one
+      float differ1 = 1.0-differ;
+      if(differ > 0.5){
+        ring.setPixelColor(intI-1, ring.Color((int)(differ1*r),(int)(differ1*g),(int)(differ1*b)));
+        ring.setPixelColor(intI, ring.Color((int)(differ*r),(int)(differ*g),(int)(differ*b))); 
+      }
+      else {
+        ring.setPixelColor(intI-1, ring.Color((int)(differ1*r),(int)(differ1*g),(int)(differ1*b)));
+        ring.setPixelColor(intI, ring.Color((int)(differ*r),(int)(differ*g),(int)(differ*b)));
+      }
+    //}
+    ring.show();
+}
+
 void SparkButton::ledOff(uint8_t i){
     //i-1 shifts the location from human readable to the right index for the LEDs
     if(i == 12){
@@ -127,6 +162,13 @@ int SparkButton::readY16(){
 
 int SparkButton::readZ16(){
     return accelerometer.readZ16();
+}
+
+//Thanks christophevg!
+uint8_t SparkButton::lowestLed(){
+    float rads = atan2(accelerometer.readY16(),accelerometer.readX16());
+    uint8_t ledPos = (uint8_t)(12 - (rads/(M_PI/6) - 3)) % 12;
+    return ledPos;
 }
 
 //float SparkButton::lowDirection(){
@@ -240,7 +282,7 @@ int ADXL362::readZ(){
 //  Read X, Y, Z, and Temp registers
 //
 int ADXL362::readX16(){
-  uint16_t XDATA = SPIreadTwoRegisters(XL362_XDATA_L);
+  int16_t XDATA = SPIreadTwoRegisters(XL362_XDATA_L);
 #ifdef ADXL362_DEBUG
   Serial.print(  "XDATA = "); 
   Serial.println(XDATA);
@@ -249,7 +291,7 @@ int ADXL362::readX16(){
 }
 
 int ADXL362::readY16(){
-  uint16_t YDATA = SPIreadTwoRegisters(XL362_YDATA_L);
+  int16_t YDATA = SPIreadTwoRegisters(XL362_YDATA_L);
 #ifdef ADXL362_DEBUG
   Serial.print(  "\tYDATA = "); 
   Serial.println(YDATA);
@@ -258,7 +300,7 @@ int ADXL362::readY16(){
 }
 
 int ADXL362::readZ16(){
-  uint16_t ZDATA = SPIreadTwoRegisters(XL362_ZDATA_L);
+  int16_t ZDATA = SPIreadTwoRegisters(XL362_ZDATA_L);
 #ifdef ADXL362_DEBUG
   Serial.print(  "\tZDATA = "); 
   Serial.println(ZDATA);
@@ -339,77 +381,6 @@ void ADXL362::XYZmgtoRPT(int X, int Y, int Z, float &Rho, float &Phi, float &The
   Theta = atan2(sqrt(pow(float(X),2)+pow(float(Y),2)),float(Z));
   Theta *= 180/M_PI;  
 }
-
-void ADXL362::setupDCActivityInterrupt(int threshold, uint8_t time){
-  //  Setup motion and time thresholds
-  SPIwriteTwoRegisters(XL362_THRESH_ACT_L, threshold);
-  SPIwriteOneRegister(XL362_TIME_ACT, time);
-
-  // turn on activity interrupt
-  uint8_t ACT_INACT_CTL_Reg = SPIreadOneRegister(XL362_ACT_INACT_CTL);  // Read current reg value
-  ACT_INACT_CTL_Reg = ACT_INACT_CTL_Reg | (0x01);     // turn on bit 1, ACT_EN  
-  SPIwriteOneRegister(XL362_ACT_INACT_CTL, ACT_INACT_CTL_Reg);       // Write new reg value 
-
-#ifdef ADXL362_DEBUG
-  Serial.print("DC Activity Threshold set to "); Serial.print(SPIreadTwoRegisters(XL362_THRESH_ACT_L));
-  Serial.print(", Time threshold set to ");      Serial.print(SPIreadOneRegister(XL362_TIME_ACT)); 
-  Serial.print(", ACT_INACT_CTL Register is ");  Serial.println(SPIreadOneRegister(XL362_ACT_INACT_CTL), HEX);
-#endif
-}
-
-void ADXL362::setupACActivityInterrupt(int threshold, uint8_t time){
-  //  Setup motion and time thresholds
-  SPIwriteTwoRegisters(XL362_THRESH_ACT_L, threshold);
-  SPIwriteOneRegister(XL362_TIME_ACT, time);
-  
-  // turn on activity interrupt
-  uint8_t ACT_INACT_CTL_Reg = SPIreadOneRegister(XL362_ACT_INACT_CTL);  // Read current reg value
-  ACT_INACT_CTL_Reg = ACT_INACT_CTL_Reg | (0x03);     // turn on bit 2 and 1, ACT_AC_DCB, ACT_EN  
-  SPIwriteOneRegister(XL362_ACT_INACT_CTL, ACT_INACT_CTL_Reg);       // Write new reg value 
-
-#ifdef ADXL362_DEBUG
-  Serial.print("AC Activity Threshold set to "); Serial.print(SPIreadTwoRegisters(XL362_THRESH_ACT_L));
-  Serial.print(", Time threshold set to ");      Serial.print(SPIreadOneRegister(XL362_TIME_ACT)); 
-  Serial.print(", ACT_INACT_CTL Register is ");  Serial.println(SPIreadOneRegister(XL362_ACT_INACT_CTL), HEX);
-#endif
-}
-
-void ADXL362::setupDCInactivityInterrupt(int threshold, uint8_t time){
-  //  Setup motion and time thresholds
-  SPIwriteTwoRegisters(XL362_THRESH_ACT_L, threshold);
-  SPIwriteOneRegister(XL362_TIME_ACT, time);
-
-  // turn on inactivity interrupt
-  uint8_t ACT_INACT_CTL_Reg = SPIreadOneRegister(XL362_ACT_INACT_CTL);   // Read current reg value 
-  ACT_INACT_CTL_Reg = ACT_INACT_CTL_Reg | (0x04);      // turn on bit 3, INACT_EN  
-  SPIwriteOneRegister(XL362_ACT_INACT_CTL, ACT_INACT_CTL_Reg);       // Write new reg value 
-
-#ifdef ADXL362_DEBUG
-  Serial.print("DC Activity Threshold set to "); Serial.print(SPIreadTwoRegisters(XL362_THRESH_ACT_L));
-  Serial.print(", Time threshold set to ");      Serial.print(SPIreadOneRegister(XL362_TIME_ACT)); 
-  Serial.print(", ACT_INACT_CTL Register is ");  Serial.println(SPIreadOneRegister(XL362_ACT_INACT_CTL), HEX);
-#endif
-}
-
-
-void ADXL362::setupACInactivityInterrupt(int threshold, uint8_t time){
-  //  Setup motion and time thresholds
-  SPIwriteTwoRegisters(XL362_THRESH_ACT_L, threshold);
-  SPIwriteOneRegister(XL362_TIME_ACT, time);
- 
-  // turn on inactivity interrupt
-  uint8_t ACT_INACT_CTL_Reg = SPIreadOneRegister(XL362_ACT_INACT_CTL);   // Read current reg value
-  ACT_INACT_CTL_Reg = ACT_INACT_CTL_Reg | (0x0C);      // turn on bit 3 and 4, INACT_AC_DCB, INACT_EN  
-  SPIwriteOneRegister(0x27, ACT_INACT_CTL_Reg);        // Write new reg value 
-  SPIwriteOneRegister(XL362_ACT_INACT_CTL, ACT_INACT_CTL_Reg);       // Write new reg value 
-
-#ifdef ADXL362_DEBUG
-  Serial.print("AC Activity Threshold set to "); Serial.print(SPIreadTwoRegisters(XL362_THRESH_ACT_L));
-  Serial.print(", Time threshold set to ");      Serial.print(SPIreadOneRegister(XL362_TIME_ACT)); 
-  Serial.print(", ACT_INACT_CTL Register is ");  Serial.println(SPIreadOneRegister(XL362_ACT_INACT_CTL), HEX);
-#endif
-}
-
 
 void ADXL362::checkAllControlRegs(){
   //uint8_t filterCntlReg = SPIreadOneRegister(0x2C);
@@ -653,12 +624,8 @@ void Adafruit_NeoPixel::show(void) {
   // subsequent round of data until the latch time has elapsed.  This
   // allows the mainline code to start generating the next frame of data
   // rather than stalling for the latch.
-  if(type == WS2812B) { // same as WS2812, 800 KHz bitstream, 50us reset pulse
-    while((micros() - endTime) < 50L);
-  }
-  else { // assume it's TM1803, 800 KHz bitstream, 24us reset pulse
-    while((micros() - endTime) < 24L);
-  } 
+  while((micros() - endTime) < 50L);
+  
   // endTime is a private member (rather than global var) so that multiple
   // instances on different pins can be quickly issued in succession (each
   // instance doesn't delay the next).
