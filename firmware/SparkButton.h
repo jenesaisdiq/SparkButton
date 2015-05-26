@@ -1,22 +1,23 @@
 /*
  Arduino Library for Analog Devices ADXL362 - Micropower 3-axis accelerometer
  go to http://www.analog.com/ADXL362 for datasheet
- 
- 
- License: CC BY-SA 3.0: Creative Commons Share-alike 3.0. Feel free 
+
+
+ License: CC BY-SA 3.0: Creative Commons Share-alike 3.0. Feel free
  to use and abuse this code however you'd like. If you find it useful
  please attribute, and SHARE-ALIKE!
- 
+
  Created June 2012
  by Anne Mahaffey - hosted on http://annem.github.com/ADXL362
  Modified Mars 2014
  by pixelk
  Modified for Spark Core/Button October 2014
  by jenesaisdiq
- 
- */ 
+
+ */
 
 #include "application.h"
+
 
 #ifndef SparkButton_h
 #define SparkButton_h
@@ -26,7 +27,7 @@ class SparkButton {
  public:
 
   SparkButton();
-  
+
   void
     begin(void),
     allLedsOff(void),
@@ -49,7 +50,7 @@ class SparkButton {
     readZ16(void);
   //float
     //lowDirection(void);
-    
+
  private:
 
 };
@@ -126,12 +127,12 @@ class ADXL362
 public:
 
   ADXL362();
-  
+
   //
   // Basic Device control and readback functions
   //
-  void begin();     
-  void beginMeasure(); 
+  void begin();
+  void beginMeasure();
   int readX16();
   int readY16();
   int readZ16();
@@ -142,7 +143,7 @@ public:
   void readXYZmg(int &X, int &Y, int &Z);
   void XYZmgtoRPT(int X, int Y, int Z, float &Rho, float &Phi, float &Theta);
   int16_t readTemp();
-  
+
   // need to add the following functions
   // void mapINT1(
   // void mapINT2
@@ -151,21 +152,21 @@ public:
   //    -Activity, Inactivity, Both
   //    - Referenced, Absolute
   //    - Free Fall, Linked Mode, Loop Mode
-  
-  
+
+
   void checkAllControlRegs();
-  
+
   void setRange(uint8_t Range);
   void setBandwidth(uint8_t BandWidth);
   void setOutputDatarate(uint8_t ODR);
   void setNoiseLevel(uint8_t NoiseLevel);
-  
+
   //  Low-level SPI control, to simplify overall coding
   uint8_t SPIreadOneRegister(uint8_t regAddress);
   void SPIwriteOneRegister(uint8_t regAddress, uint8_t regValue);
   int  SPIreadTwoRegisters(uint8_t regAddress);
   void SPIwriteTwoRegisters(uint8_t regAddress, int twoRegValue);
-  
+
 private:
   uint8_t mgperLSB; // default +-2g XL362_FILTER_FLAG_2G -> 1mg/LSB (ADXL362 Datasheet page 4)
 
@@ -182,7 +183,7 @@ private:
 /*-------------------------------------------------------------------------
   Spark Core library to control WS2811/WS2812 based RGB
   LED devices such as Adafruit NeoPixel strips.
-  Currently handles 800 KHz and 400kHz bitstream on Spark Core, 
+  Currently handles 800 KHz and 400kHz bitstream on Spark Core,
   WS2812, WS2812B and WS2811.
 
   Also supports Radio Shack Tri-Color Strip with TM1803 controller
@@ -197,8 +198,8 @@ private:
   please support Adafruit and open-source hardware by purchasing products
   from Adafruit!
   --------------------------------------------------------------------*/
-  
-/* ======================= Adafruit_NeoPixel.h ======================= */  
+
+/* ======================= Adafruit_NeoPixel.h ======================= */
 /*--------------------------------------------------------------------
   This file is part of the Adafruit NeoPixel library.
 
@@ -216,10 +217,20 @@ private:
   License along with NeoPixel.  If not, see
   <http://www.gnu.org/licenses/>.
   --------------------------------------------------------------------*/
-  
+
+#ifndef SPARK_NEOPIXEL_H
+#define SPARK_NEOPIXEL_H
+
+#include "application.h"
+
 // 'type' flags for LED pixels (third parameter to constructor):
+#define WS2812   0x02 // 800 KHz datastream (NeoPixel)
 #define WS2812B  0x02 // 800 KHz datastream (NeoPixel)
-  
+#define WS2811   0x00 // 400 KHz datastream (NeoPixel)
+#define TM1803   0x03 // 400 KHz datastream (Radio Shack Tri-Color Strip)
+#define TM1829   0x04 // 800 KHz datastream ()
+#define WS2812B2 0x05 // 800 KHz datastream (NeoPixel)
+
 class Adafruit_NeoPixel {
 
  public:
@@ -230,13 +241,15 @@ class Adafruit_NeoPixel {
 
   void
     begin(void),
-    show(void),
+    show(void) __attribute__((optimize("Ofast"))),
     setPin(uint8_t p),
     setPixelColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b),
     setPixelColor(uint16_t n, uint32_t c),
-    setBrightness(uint8_t);
+    setBrightness(uint8_t),
+    clear(void);
   uint8_t
-   *getPixels() const;
+   *getPixels() const,
+    getBrightness(void) const;
   uint16_t
     numPixels(void) const;
   static uint32_t
@@ -259,4 +272,5 @@ class Adafruit_NeoPixel {
     endTime;       // Latch timing reference
 };
 
-#endif
+#endif // ADAFRUIT_NEOPIXEL_H
+#endif SparkButton_h
