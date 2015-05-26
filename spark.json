@@ -1,6 +1,6 @@
 {
     "name": "SparkButton",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "author": "Richard Whitney <richard@spark.io>",
     "license": "LGPL",
     "description": "Functions to make the Spark Button easy to use!"
