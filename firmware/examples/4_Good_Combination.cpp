@@ -17,7 +17,7 @@ void loop(){
     // If this calls for a full spectrum situation, let's go rainbow!
     if(b.allButtonsOn()) {
         // Publish the event "allbuttons" for other services like IFTTT to use
-        Spark.publish("allbuttons",NULL, 60, PRIVATE);
+        Spark.publish("allbuttons",NULL, 60, PRIVATE); 
         b.rainbow(5);
         rainbow_mode = true;
 
