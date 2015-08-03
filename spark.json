@@ -1,7 +1,7 @@
 {
     "name": "SparkButton",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "author": "Richard Whitney <richard@spark.io>",
     "license": "LGPL",
-    "description": "Functions to make the Spark Button easy to use!"
+    "description": "This library has been superseded by InternetButton!"
 }

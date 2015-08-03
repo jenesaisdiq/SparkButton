@@ -1,4 +1,4 @@
-_The Spark Button has a lot of features, but some of these aren't as straightforward to use as simple LEDs and sensors. This library wraps up a lot of the complexity and provides simple functions with broad capability. It wraps modified versions of both Adafruit's Neopixel and AnneM's ADXL362 Arduino libraries, as well as some novel functions._
+_The Spark Button has a lot of features, but some of these aren't as straightforward to use as simple LEDs and sensors. NOTE that this library has been superseded by InternetButton!_
 
 ## Examples
 
